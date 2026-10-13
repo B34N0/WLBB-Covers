@@ -1,0 +1,970 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Business on the Books">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#1F3A4D">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="apple-touch-icon.png">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0}@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark}}
+:root[data-theme="dark"]{color-scheme:dark}</style></head><body>
+<title>Business on the Books</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;700&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one narrow column, phone first. Steps stack: add files -> create -> read tables -> save. */
+:root{
+  --bg:#f3f5f7; --surface:#ffffff; --ink:#17232e; --muted:#566676; --line:#d5dce2;
+  --accent:#1F3A4D; --accent-ink:#ffffff; --hl:#fff2cc; --hl-ink:#3d3100;
+  --ok:#1b7a3d; --bad:#b3261e; --warn-bg:#fff6dc; --warn-line:#e8cf86;
+  --int-bg:#fdecec; --int-line:#e3a3a0; --head-bg:#1F3A4D; --head-ink:#ffffff;
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --body:"Public Sans",-apple-system,"Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0e171e; --surface:#16232d; --ink:#e8eef3; --muted:#9bacba; --line:#2a3946;
+  --accent:#8fb8d4; --accent-ink:#0e171e; --hl:#4a3f12; --hl-ink:#ffe9a8;
+  --ok:#5fd08a; --bad:#ff9087; --warn-bg:#3a3112; --warn-line:#6b5a1d;
+  --int-bg:#3a1b1b; --int-line:#7d3b3b; --head-bg:#24475e; --head-ink:#ffffff; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e171e; --surface:#16232d; --ink:#e8eef3; --muted:#9bacba; --line:#2a3946;
+  --accent:#8fb8d4; --accent-ink:#0e171e; --hl:#4a3f12; --hl-ink:#ffe9a8;
+  --ok:#5fd08a; --bad:#ff9087; --warn-bg:#3a3112; --warn-line:#6b5a1d;
+  --int-bg:#3a1b1b; --int-line:#7d3b3b; --head-bg:#24475e; --head-ink:#ffffff; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding-inline:16px;padding-block:20px 48px}
+main{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1{font:700 26px/1.1 var(--display);margin:0;letter-spacing:-.01em}
+h2{font:600 17px/1.2 var(--display);margin:0 0 10px}
+.sub{color:var(--muted);margin:6px 0 0;font-size:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;min-width:0}
+button{font:600 16px var(--body);cursor:pointer;border-radius:10px;border:1px solid var(--accent);padding:12px 18px;min-height:46px}
+button.primary{background:var(--accent);color:var(--accent-ink)}
+button.ghost{background:transparent;color:var(--accent)}
+button:disabled{opacity:.4;cursor:default}
+button:focus-visible,label.btn:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.slots{list-style:none;margin:14px 0 0;padding:0;display:grid;gap:8px}
+.slots li{display:flex;gap:10px;align-items:baseline;min-width:0;padding:8px 0;border-top:1px solid var(--line)}
+.slots .k{flex:0 0 7.5em;font-weight:600}
+.dates{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.dates label{display:grid;gap:4px;font-weight:600;font-size:.9em}
+.dates input{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:inherit;min-height:44px}
+.dates button{min-height:44px}
+.hint{margin:6px 0 0;color:var(--muted);font-size:.9em}
+.slots .v{min-width:0;overflow-wrap:anywhere;color:var(--muted)}
+.slots li.done .v{color:var(--ok)}
+.slots li.done .v::before{content:"\2713  "}
+#drop{display:block;border:2px dashed var(--line);border-radius:12px;padding:20px 16px;text-align:center;color:var(--muted)}
+#drop.over{border-color:var(--accent);color:var(--ink)}
+.msg{margin:10px 0 0;min-height:1.4em;font-size:14px;color:var(--muted)}
+.msg.bad{color:var(--bad)} .msg.ok{color:var(--ok)}
+.note{background:var(--warn-bg);border:1px solid var(--warn-line);border-radius:10px;padding:10px 12px;font-size:14px;margin:0 0 10px}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+th{background:var(--head-bg);color:var(--head-ink);font-weight:600;padding:8px 8px;text-align:center;white-space:nowrap}
+td{padding:8px;border-top:1px solid var(--line);text-align:center;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1;white-space:normal;min-width:9.5em;max-width:11em}
+th:first-child{background:var(--head-bg)}
+tr.hl td{background:var(--hl);color:var(--hl-ink);font-weight:700}
+.sec{margin:16px 0 8px;font:600 15px var(--display)}
+.sec:first-of-type{margin-top:0}
+.save{display:flex;flex-direction:column;gap:10px}
+.save button{text-align:left;display:flex;justify-content:space-between;gap:12px;align-items:center}
+.save small{font-weight:400;opacity:.85}
+.internal{background:var(--int-bg);border:1px solid var(--int-line);border-radius:10px;padding:12px;margin-top:6px}
+.internal p{margin:0 0 10px;font-size:14px}
+.internal button{width:100%;text-align:left}
+.foot{color:var(--muted);font-size:13px;text-align:center;margin-top:4px}
+[hidden]{display:none!important}
+</style>
+
+<main>
+  <header>
+    <h1>Business on the Books</h1>
+    <p class="sub">WLBB. Everything is worked out on this device; no guest data is sent anywhere.</p>
+  </header>
+
+  <section class="card" aria-labelledby="h-add">
+    <h2 id="h-add">1. Add the four exports</h2>
+    <label id="drop" for="pick">Drop the files here, or tap to choose them<br><small>Guest List, Daily Products, ResDiary dinners, TicketIsland event stats</small></label>
+    <input id="pick" type="file" multiple hidden accept=".csv,.xls,.xlsx,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+    <ul class="slots" id="slots">
+      <li data-k="guests"><span class="k">Guest List</span><span class="v">Not added</span></li>
+      <li data-k="daily"><span class="k">Daily Products</span><span class="v">Not added</span></li>
+      <li data-k="resdiary"><span class="k">ResDiary</span><span class="v">Not added</span></li>
+      <li data-k="events"><span class="k">Event stats</span><span class="v">Not added</span></li>
+    </ul>
+    <div class="range" id="range" hidden>
+      <h3 class="sec" style="margin:18px 0 6px">Dates to show</h3>
+      <div class="dates"><label>From<input type="date" id="d-from"></label><label>To<input type="date" id="d-to"></label><button class="ghost" id="d-reset" type="button">All dates in the files</button></div>
+      <p class="hint" id="d-hint"></p>
+    </div>
+    <p class="msg" id="msg" role="status" aria-live="polite"></p>
+    <div class="row"><button class="primary" id="go" disabled>Create reports</button><button class="ghost" id="reset" hidden>Start again</button></div>
+  </section>
+
+  <section id="results" hidden>
+    <div class="card">
+      <h2>2. Check the numbers</h2>
+      <p class="sub" style="margin:-4px 0 10px">Swipe the tables sideways to see every day.</p>
+      <div id="notes"></div>
+      <div id="tables"></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h2>3. Save the reports</h2>
+      <div class="save" id="save">
+        <button class="primary" id="s-pdf"><span>Team report (PDF)</span><small>No guest names</small></button>
+        <button class="primary" id="s-xlsx"><span>Team report (Excel)</span><small>No guest names</small></button>
+      </div>
+      <div class="internal">
+        <p><strong>Internal only.</strong> This list has guest names. Do not send it with the team report.</p>
+        <button class="ghost" id="s-int"><span>Guests without a dinner booking (PDF)</span></button>
+      </div>
+      <p class="msg" id="savemsg" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+  <p class="foot">Files you add stay in this tab and are dropped when you close it.</p>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* Business on the Books - report logic (runs in the browser; no data leaves the device). */
+(function (root) {
+  "use strict";
+  var TOTAL_ROOMS = 17;
+  var WANTED = {
+    "brunch at the vineyard hotel": "Brunch",
+    "food & wine matching experience": "Food & Wine",
+    "food & wine matching at the vineyard hotel": "Food & Wine",
+    "sparkling afternoon tea in the vineyard restaurant": "Afternoon Tea",
+    "denbies pairing menu in the wine library": "Pairing Menu",
+    "gin in the vines": "Gin & Vine",
+    "one day wine enthusiast workshop": "One Day Wine Workshop",
+    "brunch & bubbles at the weekend": "Brunch",
+    "vineyard restaurant sparkling afternoon tea & train tour": "Afternoon Tea"
+  };
+  var EVENT_ORDER = ["Brunch", "Food & Wine", "Afternoon Tea", "Pairing Menu", "Gin & Vine", "One Day Wine Workshop"];
+  var TITLES = { mr: 1, mrs: 1, ms: 1, miss: 1, mx: 1, dr: 1, prof: 1, sir: 1, lady: 1, lord: 1, rev: 1, master: 1 };
+  var WD = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var WD_LONG = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  var MON_LONG = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+  /* ---------- small helpers ---------- */
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function isoFromUTC(d) { return d.getUTCFullYear() + "-" + pad(d.getUTCMonth() + 1) + "-" + pad(d.getUTCDate()); }
+  function utc(iso) { var p = iso.split("-"); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])); }
+  function addDays(iso, n) { var d = utc(iso); d.setUTCDate(d.getUTCDate() + n); return isoFromUTC(d); }
+  function dayRange(a, b) { var out = [], d = a; while (d <= b) { out.push(d); d = addDays(d, 1); } return out; }
+  function fmtDay(iso) { var d = utc(iso); return WD[d.getUTCDay()] + " " + pad(d.getUTCDate()) + " " + MON[d.getUTCMonth()]; }
+  function fmtDayLong(iso) { var d = utc(iso); return WD_LONG[d.getUTCDay()] + " " + d.getUTCDate() + " " + MON_LONG[d.getUTCMonth()]; }
+  function fmtShort(iso) { var d = utc(iso); return pad(d.getUTCDate()) + " " + MON[d.getUTCMonth()]; }
+  function str(v) { return v === null || v === undefined ? "" : String(v); }
+  function num(v) { var n = parseFloat(String(v).replace(/,/g, "")); return isNaN(n) ? 0 : Math.round(n); }
+  function sum(a) { var t = 0; for (var i = 0; i < a.length; i++) if (typeof a[i] === "number") t += a[i]; return t; }
+
+  /* Any date-ish cell -> "YYYY-MM-DD" (or null). Handles Excel serials, Date objects, ISO and dd/mm/yyyy text. */
+  function toIso(v) {
+    if (v === null || v === undefined || v === "") return null;
+    if (v instanceof Date) return isoFromUTC(new Date(v.getTime() + 12 * 3600 * 1000));
+    if (typeof v === "number") { if (v < 1) return null; return isoFromUTC(new Date(Date.UTC(1899, 11, 30) + Math.floor(v) * 86400000)); }
+    var s = String(v).trim(), m;
+    if ((m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s))) return m[1] + "-" + m[2] + "-" + m[3];
+    if ((m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec(s))) return m[3] + "-" + pad(+m[2]) + "-" + pad(+m[1]);
+    if (/^\d+(\.\d+)?$/.test(s)) return toIso(parseFloat(s));
+    return null;
+  }
+  /* Time-ish cell -> "HH:MM" */
+  function toHHMM(v) {
+    if (v instanceof Date) { var t = new Date(v.getTime() + 30000); return pad(t.getUTCHours()) + ":" + pad(t.getUTCMinutes()); }
+    if (typeof v === "number") { var mins = Math.round((v % 1) * 1440); return pad(Math.floor(mins / 60) % 24) + ":" + pad(mins % 60); }
+    var m = /(\d{1,2}):(\d{2})/.exec(str(v));
+    return m ? pad(+m[1]) + ":" + m[2] : "00:00";
+  }
+
+  /* RFC4180-style CSV parser (quoted fields, embedded newlines, doubled quotes). */
+  function parseCsv(text) {
+    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+    var rows = [], row = [], f = "", q = false, i = 0, c;
+    while (i < text.length) {
+      c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i + 1] === '"') { f += '"'; i += 2; continue; } q = false; i++; continue; }
+        f += c; i++; continue;
+      }
+      if (c === '"') { q = true; i++; continue; }
+      if (c === ",") { row.push(f); f = ""; i++; continue; }
+      if (c === "\r") { i++; continue; }
+      if (c === "\n") { row.push(f); rows.push(row); row = []; f = ""; i++; continue; }
+      f += c; i++;
+    }
+    if (f !== "" || row.length) { row.push(f); rows.push(row); }
+    return rows;
+  }
+
+  function colMap(headerRow) {
+    var m = {};
+    for (var j = 0; j < headerRow.length; j++) { var k = str(headerRow[j]).replace(/\s+/g, " ").trim(); if (k && !(k in m)) m[k] = j; }
+    return m;
+  }
+
+  /* ---------- identify which report a sheet is ---------- */
+  function detect(rows) {
+    var head = (rows[0] || []).map(function (c) { return str(c).trim(); });
+    if (head.indexOf("BookRef") >= 0 && (head.indexOf("GuestName") >= 0 || (head.indexOf("Surname") >= 0 && head.indexOf("Room Id") >= 0))) return "guests";
+    if (head.indexOf("Event_Desc") >= 0) return "events";
+    var cells = {};
+    for (var i = 0; i < Math.min(rows.length, 6); i++) for (var j = 0; j < rows[i].length; j++) cells[str(rows[i][j]).trim()] = 1;
+    if (cells["Daily Products"]) return "daily";
+    if (cells["T#."] && cells["P#."]) return "resdiary";
+    return null;
+  }
+
+  /* ---------- loaders ---------- */
+  function loadGuests(rows) {
+    var c0 = colMap(rows[0]);
+    if (!("GuestName" in c0) && ("Surname" in c0)) return loadGuestsByProfile(rows, c0);
+    var c = c0, out = [];
+    for (var i = 1; i < rows.length; i++) {
+      var r = rows[i];
+      if (!str(r[c.BookRef]).trim()) continue;
+      var notes = [str(r[c["Public Notes"]]), str(r[c["Private Notes"]]), str(r[c["Food & Beverage Notes"]])].join(" ");
+      var pm = /(\d{2}\/\d{2}\/\d{4}) @ \d{2}:\d{2} for (\d+) cover/.exec(str(r[c.resdiary_DATA]));
+      out.push({
+        ref: str(r[c.BookRef]), name: str(r[c.GuestName]), room: str(r[c.RoomID]),
+        arr: toIso(r[c.Arrival]), dep: toIso(r[c.Departure]),
+        ad: num(r[c.Adults]), ch: num(r[c.Children]), inf: num(r[c.Infants]),
+        notes: notes, plan: str(r[c.Package]).trim().toUpperCase(), portal: pm ? { date: toIso(pm[1]), covers: +pm[2] } : null
+      });
+    }
+    return out;
+  }
+  /* Newer RezLynx query: one row per guest profile (Forename / Surname / Room Id / Nights).
+     Rows are folded back into one record per room; every profile's name is kept for matching. */
+  function loadGuestsByProfile(rows, c) {
+    var byKey = {}, order = [], blank = 0;
+    for (var i = 1; i < rows.length; i++) {
+      var r = rows[i], ref = str(r[c.BookRef]).trim();
+      if (!ref) continue;
+      var arr = toIso(r[c.Arrival]), nights = num(r[c.Nights]) || 1, room = str(r[c["Room Id"]]).trim();
+      if (!room) room = "(no room " + (++blank) + ")";
+      var key = ref + "|" + room + "|" + arr + "|" + nights;
+      var name = (str(r[c.Forename]).trim() + " " + str(r[c.Surname]).trim()).replace(/\s+/g, " ").trim();
+      var g = byKey[key];
+      if (!g) {
+        g = byKey[key] = { ref: ref, plan: str(r[c["Rate Plan"]]).trim().toUpperCase(), names: [], room: room, arr: arr, dep: addDays(arr, nights), ad: 0, ch: 0, inf: 0, notes: "", portal: null };
+        order.push(key);
+      }
+      if (name && g.names.indexOf(name) < 0) g.names.push(name);
+      g.ad = Math.max(g.ad, num(r[c.Adults])); g.ch = Math.max(g.ch, num(r[c.Children]));
+      if (c.Infants !== undefined) g.inf = Math.max(g.inf, num(r[c.Infants]));
+      var nt = str(r[c.Notes]).trim(); if (nt && g.notes.indexOf(nt) < 0) g.notes += (g.notes ? " " : "") + nt;
+    }
+    return order.map(function (k) {
+      var g = byKey[k];
+      return { ref: g.ref, plan: g.plan, name: g.names[0] || "", alts: g.names.slice(1), display: g.names.join(" / "), room: g.room, arr: g.arr, dep: g.dep,
+        ad: g.ad, ch: g.ch, inf: g.inf, notes: g.notes + (g.names.length > 1 ? " " + g.names.join(" ") : ""), portal: null };
+    });
+  }
+  function loadResDiary(rows) {
+    var c = colMap(rows[0]), out = [];
+    for (var i = 1; i < rows.length; i++) {
+      var r = rows[i], d = toIso(r[c.Date]);
+      if (!d) continue;
+      out.push({
+        date: d, hhmm: toHHMM(r[c.Time]), service: str(r[c.Service]), covers: num(r[c["P#."]]),
+        name: str(r[c.Name]), comment: str(r[c.Comments]),
+        isTea: /\btea\b/i.test(str(r[c.Service]))
+      });
+    }
+    return out;
+  }
+  function loadDaily(rows) {
+    var h = -1;
+    for (var i = 0; i < rows.length; i++) if (str(rows[i][0]).trim() === "Date") { h = i; break; }
+    if (h < 0) throw new Error("Daily Products report has no Date header");
+    var c = colMap(rows[h]), out = {};
+    for (var k = h + 1; k < rows.length; k++) {
+      var r = rows[k], d = toIso(r[0]);
+      if (!d) continue;
+      out[d] = { rooms: num(r[c["Rooms Sold"]]), ad: num(r[c.Guests]), ch: num(r[c.Guests + 1]), inf: num(r[c.Guests + 2]),
+        bfast: num(r[c.BFAST_INC]), wine: num(r[c.WINEFLIGHT]) };
+    }
+    return out;
+  }
+  function unescapeHtml(s) { return s.replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#0?39;/g, "'"); }
+  function loadEvents(rows) {
+    var c = colMap(rows[0]), out = [], rx = /^(.*) (\d{1,2} \w{3} \d{2}) (\d{1,2}:\d{2})$/;
+    for (var i = 1; i < rows.length; i++) {
+      var r = rows[i], desc = unescapeHtml(str(r[c.Event_Desc])).trim(), m = rx.exec(desc);
+      if (!m) continue;
+      var key = m[1].trim().toLowerCase();
+      if (!(key in WANTED)) continue;
+      var dm = /^(\d{1,2}) (\w{3}) (\d{2})$/.exec(m[2]), mi = MON.indexOf(dm[2].charAt(0).toUpperCase() + dm[2].slice(1).toLowerCase());
+      var t = m[3].length < 5 ? "0" + m[3] : m[3];
+      var cap = num(r[c.Tickets]), sold = num(r[c.Sold]);
+      out.push({ event: WANTED[key], date: "20" + dm[3] + "-" + pad(mi + 1) + "-" + pad(+dm[1]), time: t,
+        capacity: cap, sold: sold, tix: sold, avail: num(r[c.Available]) });
+    }
+    return out;
+  }
+
+  /* ---------- name matching ---------- */
+  function tokens(name) {
+    var s = String(name).toLowerCase().replace(/,/g, " ").replace(/[^a-z\s'-]/g, " "), set = {}, n = 0;
+    s.split(/\s+/).forEach(function (t) { if (t && !(t in TITLES) && !(t in set)) { set[t] = 1; n++; } });
+    return { set: set, n: n, key: Object.keys(set).sort().join(" ") };
+  }
+  function subset(a, b) { for (var k in a.set) if (!(k in b.set)) return false; return true; }
+  function longestBlock(a, b, alo, ahi, blo, bhi) {
+    var best = [alo, blo, 0];
+    for (var i = alo; i < ahi; i++) for (var j = blo; j < bhi; j++) {
+      var k = 0;
+      while (i + k < ahi && j + k < bhi && a[i + k] === b[j + k]) k++;
+      if (k > best[2]) best = [i, j, k];
+    }
+    return best;
+  }
+  function matchTotal(a, b, alo, ahi, blo, bhi) {
+    if (alo >= ahi || blo >= bhi) return 0;
+    var m = longestBlock(a, b, alo, ahi, blo, bhi);
+    if (!m[2]) return 0;
+    return m[2] + matchTotal(a, b, alo, m[0], blo, m[1]) + matchTotal(a, b, m[0] + m[2], ahi, m[1] + m[2], bhi);
+  }
+  function ratio(a, b) { var t = a.length + b.length; return t ? 2 * matchTotal(a, b, 0, a.length, 0, b.length) / t : 1; }
+  function namesMatch(a, b) {
+    if (!a.n || !b.n) return false;
+    if (a.key === b.key) return true;
+    var small = a.n <= b.n ? a : b, big = a.n <= b.n ? b : a;
+    if (small.n >= 2 && subset(small, big)) return true;
+    return a.n === b.n && ratio(a.key, b.key) >= 0.9;
+  }
+  function wordSet(text) {
+    var set = {};
+    String(text).toLowerCase().replace(/[^a-z\s'-]/g, " ").split(/\s+/).forEach(function (w) { if (w) set[w] = 1; });
+    return set;
+  }
+  function mentions(words, tok) {
+    if (tok.n < 2) return false;
+    for (var k in tok.set) if (!(k in words)) return false;
+    return true;
+  }
+
+  /* Corporate rate plans whose single-occupancy guests often dine together on one multi-cover table booking. */
+  var CORP_PLANS = { "SPECDBB": 1, "BUCHBB": 1, "BUCHERBB": 1 };
+
+  /* ---------- dinner analysis (every night of every stay) ---------- */
+  function dinnerAnalysis(guests, rd, nights) {
+    var result = {}, unbooked = [];
+    guests.forEach(function (g) { g.tok = tokens(g.name); g.words = wordSet(g.notes); g.altToks = (g.alts || []).map(tokens); });
+    function gMatch(g, tok) { if (namesMatch(g.tok, tok)) return true; for (var q = 0; q < g.altToks.length; q++) if (namesMatch(g.altToks[q], tok)) return true; return false; }
+    function gMention(words, g) { if (mentions(words, g.tok)) return true; for (var q = 0; q < g.altToks.length; q++) if (mentions(words, g.altToks[q])) return true; return false; }
+    rd.forEach(function (b) { b.tok = tokens(b.name); b.words = wordSet(b.comment); });
+    nights.forEach(function (night) {
+      var inh = [];
+      guests.forEach(function (g, i) { if (g.arr <= night && g.dep > night) inh.push(i); });
+      if (!inh.length) return;
+      var parent = {};
+      inh.forEach(function (i) { parent[i] = i; });
+      function find(x) { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
+      function union(a, b) { parent[find(a)] = find(b); }
+      for (var x = 0; x < inh.length; x++) for (var y = x + 1; y < inh.length; y++) {
+        var a = inh[x], b = inh[y];
+        var ga = guests[a], gb = guests[b], hit = gMatch(ga, gb.tok);
+        for (var q = 0; !hit && q < gb.altToks.length; q++) hit = gMatch(ga, gb.altToks[q]);
+        if (hit) union(a, b);
+        else if (mentions(ga.words, gb.tok) || mentions(gb.words, ga.tok)) union(a, b);
+      }
+      var bookingGroup = [];
+      rd.forEach(function (b, bi) {
+        if (b.date !== night) return;
+        var hits = inh.filter(function (i) { return gMatch(guests[i], b.tok) || gMention(b.words, guests[i]); });
+        if (hits.length) { for (var h = 1; h < hits.length; h++) union(hits[0], hits[h]); bookingGroup.push([bi, hits[0]]); }
+      });
+      var groups = {}, order = [], matchedBk = {};
+      inh.forEach(function (i) {
+        var k = find(i);
+        if (!groups[k]) { groups[k] = { plans: [], rooms: [], rd: 0, portal: {}, ad: 0, ch: 0, inf: 0, names: [], arr: [], dep: [], hint: false }; order.push(k); }
+        var g = guests[i], gp = groups[k];
+        gp.plans.push(g.plan || ""); gp.rooms.push(g.room); gp.names.push((g.display || g.name).replace(/\s+/g, " ").trim());
+        gp.arr.push(g.arr); gp.dep.push(g.dep);
+        gp.ad += g.ad; gp.ch += g.ch; gp.inf += g.inf;
+        gp.hint = gp.hint || /dinner|dine\b/i.test(g.notes);
+        if (g.portal && g.portal.date === night) gp.portal[g.ref + "|" + g.portal.covers] = g.portal.covers;
+      });
+      bookingGroup.forEach(function (bg) { groups[find(bg[1])].rd += rd[bg[0]].covers; matchedBk[bg[0]] = 1; });
+      var t = { ad: 0, ch: 0, inf: 0, booked: 0, unk_ad: 0, unk_ch: 0, unk_inf: 0, pax: 0 };
+      var ents = [], pools = {}, planCovers = {}, planGuests = {};
+      order.forEach(function (k) {
+        var gp = groups[k], portalCov = 0;
+        for (var pk in gp.portal) portalCov += gp.portal[pk];
+        var covers = Math.max(gp.rd, portalCov), pax = gp.ad + gp.ch + gp.inf, left = covers, unk = {};
+        ["ad", "ch", "inf"].forEach(function (f) { var used = Math.min(left, gp[f]); left -= used; unk[f] = gp[f] - used; });
+        var plan = gp.plans.length === 1 && CORP_PLANS[gp.plans[0]] ? gp.plans[0] : "";
+        if (plan) {
+          planCovers[plan] = (planCovers[plan] || 0) + covers;
+          if (pax === 1) planGuests[plan] = (planGuests[plan] || 0) + 1;
+          pools[plan] = (pools[plan] || 0) + Math.max(0, covers - pax);   // spare seats on a corporate-plan table
+        }
+        ents.push({ gp: gp, covers: covers, pax: pax, unk: unk, plan: plan });
+      });
+      // other single-room guests on the same corporate plan are assumed to be the extra people on that table
+      var assumed = 0;
+      ents.forEach(function (e) {
+        var u = e.unk.ad + e.unk.ch + e.unk.inf;
+        if (u === 1 && e.pax === 1 && e.plan && pools[e.plan] > 0) {
+          pools[e.plan]--; assumed++; e.unk = { ad: 0, ch: 0, inf: 0 }; e.assumed = true;
+        }
+      });
+      t.assumed = assumed;
+      ents.forEach(function (e) {
+        var gp = e.gp, unk = e.unk, covers = e.covers, pax = e.pax;
+        var u = unk.ad + unk.ch + unk.inf;
+        t.pax += pax; t.booked += pax - u; t.unk_ad += unk.ad; t.unk_ch += unk.ch; t.unk_inf += unk.inf;
+        if (u) {
+          var names = []; gp.names.forEach(function (n) { if (names.indexOf(n) < 0) names.push(n); });
+          unbooked.push({ night: night, rooms: gp.rooms.slice().sort().join(" + "), guests: names.join(" / "), unbooked: u,
+            occupants: pax, covers: covers, planNote: e.plan && planCovers[e.plan] > 0 && planGuests[e.plan] > planCovers[e.plan] ? e.plan + ": table of " + planCovers[e.plan] + " booked for " + planGuests[e.plan] + " guests on this plan" : "", stay: fmtShort(gp.arr.slice().sort()[0]) + " - " + fmtShort(gp.dep.slice().sort().pop()), hint: gp.hint });
+        }
+      });
+      result[night] = t;
+    });
+    return { result: result, unbooked: unbooked };
+  }
+
+  /* ---------- build the report model ---------- */
+  function build(files) {
+    var guests = loadGuests(files.guests), daily = loadDaily(files.daily),
+        rdAll = loadResDiary(files.resdiary), ev = loadEvents(files.events);
+
+    // afternoon teas booked through ResDiary are added to the Afternoon Tea ticket numbers (matched on time)
+    var teaMap = {};
+    rdAll.filter(function (r) { return r.isTea; }).forEach(function (r) {
+      var k = r.date + "|" + r.hhmm; teaMap[k] = (teaMap[k] || 0) + r.covers;
+    });
+    Object.keys(teaMap).sort().forEach(function (k) {
+      var p = k.split("|"), hit = null;
+      for (var i = 0; i < ev.length; i++) if (ev[i].event === "Afternoon Tea" && ev[i].date === p[0] && ev[i].time === p[1]) { hit = ev[i]; break; }
+      if (hit) hit.sold += teaMap[k];
+      else ev.push({ event: "Afternoon Tea", date: p[0], time: p[1], capacity: 0, sold: teaMap[k], tix: 0, avail: 0 });
+    });
+    var rd = rdAll.filter(function (r) { return !r.isTea; });
+
+    var dailyDates = Object.keys(daily).sort();
+    function minOf(a) { return a.slice().sort()[0]; }
+    function maxOf(a) { return a.slice().sort().pop(); }
+    var rdDates = rd.map(function (r) { return r.date; }), evDates = ev.map(function (e) { return e.date; });
+    var first = minOf([dailyDates[0], minOf(rdDates), minOf(evDates)]);
+    var last = maxOf([maxOf(dailyDates), maxOf(rdDates), maxOf(evDates)]);
+    var startDay = minOf([minOf(rdDates), minOf(evDates)]);
+    var days = dayRange(first, last).filter(function (d) { return d >= startDay; });
+    var auto = { first: days[0], last: days[days.length - 1] };
+    if (files.from || files.to) days = dayRange(files.from || auto.first, files.to || auto.last);
+
+    var da = dinnerAnalysis(guests, rd, days), dn = da.result;
+    var head = ["Measure"].concat(days.map(fmtDay), ["Total"]);
+    function row(label, vals, total) { return [label].concat(vals, [total === undefined ? "" : total]); }
+    function dget(d, k) { return daily[d] ? daily[d][k] : null; }
+
+    var rooms = days.map(function (d) { return dget(d, "rooms"); });
+    var nr = rooms.filter(function (r) { return r !== null; });
+    var hotel = [
+      row("Rooms Sold", rooms.map(function (r) { return r === null ? "-" : r; }), sum(nr)),
+      row("Rooms Available", rooms.map(function (r) { return r === null ? "-" : TOTAL_ROOMS - r; }), nr.length * TOTAL_ROOMS - sum(nr)),
+      row("Occupancy %", rooms.map(function (r) { return r === null ? "-" : Math.round(r / TOTAL_ROOMS * 100) + "%"; }),
+        Math.round(sum(nr) / (TOTAL_ROOMS * nr.length) * 100) + "%"),
+      row("Guests In House (Ad / Ch / In)", days.map(function (d) { return daily[d] ? daily[d].ad + " / " + daily[d].ch + " / " + daily[d].inf : "-"; }))
+    ];
+
+    var rdTot = {};
+    rd.forEach(function (r) { rdTot[r.date] = (rdTot[r.date] || 0) + r.covers; });
+    var tot = days.map(function (d) { return rdTot[d] || 0; });
+    var complete = {};
+    days.forEach(function (d) { var t = dn[d]; complete[d] = !!(t && daily[d] && t.pax === daily[d].ad + daily[d].ch + daily[d].inf); });
+    function cell(d, f) { return dn[d] ? f(dn[d]) : "-"; }
+    var booked = days.map(function (d) { return cell(d, function (t) { return t.booked; }); });
+    var unk = days.map(function (d) { return cell(d, function (t) { return t.unk_ad + t.unk_ch + t.unk_inf; }); });
+    var unkAd = days.map(function (d) { return cell(d, function (t) { return t.unk_ad; }); });
+    var unkCh = days.map(function (d) { return cell(d, function (t) { return t.unk_ch + t.unk_inf; }); });
+    var other = days.map(function (d, i) {
+      if (typeof booked[i] !== "number") return "-";
+      var x = tot[i] - booked[i]; return complete[d] ? x : x + "*";
+    });
+    var otherTotal = 0; other.forEach(function (o, i) { if (typeof o === "number" && complete[days[i]]) otherTotal += o; });
+    var gap = days.map(function (d) {
+      return dn[d] && daily[d] ? Math.max(0, daily[d].ad + daily[d].ch + daily[d].inf - dn[d].pax) : "-";
+    });
+
+    var soldBy = {}, availBy = {}, oversold = [];
+    EVENT_ORDER.forEach(function (name) {
+      var sr = [], ar = [];
+      days.forEach(function (d) {
+        var s = ev.filter(function (e) { return e.event === name && e.date === d && (e.capacity > 0 || e.sold > 0); })
+          .sort(function (a, b) { return a.time < b.time ? -1 : a.time > b.time ? 1 : 0; });
+        sr.push(s.length ? s.map(function (e) { return e.sold; }).join(" + ") : "-");
+        ar.push(s.length ? s.map(function (e) { return Math.max(0, e.avail); }).join(" + ") : "-");
+        s.forEach(function (e) { if (e.tix > e.capacity) oversold.push(name + " " + fmtShort(e.date) + " " + e.time + " (" + e.tix + " sold / " + e.capacity + ")"); });
+      });
+      soldBy[name] = sr; availBy[name] = ar;
+    });
+
+    var bf = days.map(function (d) { return daily[d] ? daily[d].ad + daily[d].ch + daily[d].inf : null; }); // always equals Guests In House
+    var wf = days.map(function (d) { return dget(d, "wine"); });
+    function orDash(a) { return a.map(function (v) { return v === null ? "-" : v; }); }
+    var fb = [
+      row("Breakfast", orDash(bf), sum(bf)),
+      row("Brunch", soldBy["Brunch"]),
+      row("One Day Wine Workshop", soldBy["One Day Wine Workshop"]),
+      row("Food & Wine", soldBy["Food & Wine"]),
+      row("Afternoon Tea", soldBy["Afternoon Tea"]),
+      row("Gin & Vine", soldBy["Gin & Vine"]),
+      row("Wine Flight", orDash(wf), sum(wf)),
+      row("Pairing Menu", soldBy["Pairing Menu"]),
+      row("Dinner", tot, sum(tot)),
+      row("Dinner - in-house guests NOT booked", unk, sum(unk))
+    ];
+
+    var notes = [];
+    var bad = days.filter(function (d) { return !complete[d]; });
+    if (bad.length && days.some(function (d) { return dn[d]; })) {
+      notes.push("The guest list does not match Daily Products for: " + bad.map(fmtDay).join(", ") +
+        ". Dinner figures for those nights may be a minimum - check the guest list export includes every booking in house.");
+    }
+    var asm = days.filter(function (d) { return dn[d] && dn[d].assumed; });
+    if (asm.length) {
+      notes.push("Corporate single-room guests (" + Object.keys(CORP_PLANS).join(", ") + ") counted as covered by the spare seats on a same-plan table on: " +
+        asm.map(function (d) { return fmtDay(d) + " (" + dn[d].assumed + ")"; }).join(", ") + ".");
+    }
+    if (oversold.length) notes.push("Oversold sessions: " + oversold.join("; ") + ".");
+
+    return {
+      days: days, auto: auto, head: head,
+      sections: [["Hotel", head, hotel], ["F&B", head, fb]],
+      detail: [["Dinner check", head, [
+        row("In-house guests WITH a dinner booking", booked, sum(booked)),
+        row("In-house guests NOT booked for dinner", unk, sum(unk)),
+        row("   of which adults", unkAd, sum(unkAd)),
+        row("   of which children / infants", unkCh, sum(unkCh)),
+        row("Other covers (non-residents / not matched to a room)", other, otherTotal),
+        row("In-house guests missing from the guest list", gap, sum(gap)),
+        row("Guest list complete for this night?", days.map(function (d) { return complete[d] ? "Yes" : "NO"; }))
+      ]]],
+      notes: notes, unbooked: da.unbooked, complete: complete, availBy: availBy
+    };
+  }
+
+  var API = { detect: detect, parseCsv: parseCsv, build: build, fmtDay: fmtDay, fmtDayLong: fmtDayLong, toIso: toIso, ratio: ratio };
+  if (typeof module !== "undefined" && module.exports) module.exports = API; else root.BOTB = API;
+})(typeof self !== "undefined" ? self : this);
+
+</script>
+<script>
+/* PDF and Excel (.xlsx) writers with no dependencies. Everything is built in memory on the device. */
+(function (root) {
+  "use strict";
+
+  /* ================= PDF ================= */
+  var HELV = [278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584];
+  var HELVB = [278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584];
+
+  function Pdf() { this.pages = []; this.cur = null; }
+  Pdf.prototype.addPage = function (w, h) { this.cur = { w: w, h: h, ops: [] }; this.pages.push(this.cur); return this.cur; };
+  Pdf.prototype.width = function (s, size, bold) {
+    var t = bold ? HELVB : HELV, w = 0;
+    for (var i = 0; i < s.length; i++) { var c = s.charCodeAt(i); w += (c >= 32 && c <= 126 ? t[c - 32] : 556); }
+    return w * size / 1000;
+  };
+  function col(hex) { return [1, 3, 5].map(function (i) { return (parseInt(hex.substr(i, 2), 16) / 255).toFixed(3); }).join(" "); }
+  function esc(s) {
+    var out = "";
+    for (var i = 0; i < s.length; i++) {
+      var c = s.charCodeAt(i), ch = s[i];
+      if (c === 0x2013 || c === 0x2014) ch = "-"; else if (c === 0x2018 || c === 0x2019) ch = "'"; else if (c === 0x201C || c === 0x201D) ch = '"';
+      else if (c > 255) ch = "?";
+      if (ch === "(" || ch === ")" || ch === "\\") out += "\\" + ch; else out += ch;
+    }
+    return out;
+  }
+  Pdf.prototype.rect = function (x, y, w, h, fill) { var p = this.cur; p.ops.push(col(fill) + " rg " + x.toFixed(2) + " " + (p.h - y - h).toFixed(2) + " " + w.toFixed(2) + " " + h.toFixed(2) + " re f"); };
+  Pdf.prototype.hline = function (x1, x2, y, color, wid) { var p = this.cur; p.ops.push(col(color) + " RG " + (wid || 0.5) + " w " + x1.toFixed(2) + " " + (p.h - y).toFixed(2) + " m " + x2.toFixed(2) + " " + (p.h - y).toFixed(2) + " l S"); };
+  /* y is the text baseline measured from the top of the page */
+  Pdf.prototype.text = function (s, x, y, size, bold, color) {
+    var p = this.cur; p.ops.push("BT " + col(color || "#000000") + " rg /" + (bold ? "F2" : "F1") + " " + size + " Tf " + x.toFixed(2) + " " + (p.h - y).toFixed(2) + " Td (" + esc(s) + ") Tj ET");
+  };
+  Pdf.prototype.wrap = function (s, maxW, size, bold) {
+    var words = String(s).split(/\s+/), lines = [], line = "";
+    for (var i = 0; i < words.length; i++) {
+      var t = line ? line + " " + words[i] : words[i];
+      if (line && this.width(t, size, bold) > maxW) { lines.push(line); line = words[i]; } else line = t;
+    }
+    lines.push(line);
+    return lines;
+  };
+  Pdf.prototype.bytes = function () {
+    var objs = [], self = this;
+    function add(s) { objs.push(s); return objs.length; }
+    add("<< /Type /Catalog /Pages 2 0 R >>");
+    add(""); // pages, patched below
+    add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
+    add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>");
+    var kids = [];
+    this.pages.forEach(function (p) {
+      var stream = p.ops.join("\n"), cid = add("<< /Length " + stream.length + " >>\nstream\n" + stream + "\nendstream");
+      var pid = add("<< /Type /Page /Parent 2 0 R /MediaBox [0 0 " + p.w + " " + p.h + "] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents " + cid + " 0 R >>");
+      kids.push(pid + " 0 R");
+    });
+    objs[1] = "<< /Type /Pages /Kids [" + kids.join(" ") + "] /Count " + kids.length + " >>";
+    var out = "%PDF-1.4\n", offs = [];
+    objs.forEach(function (o, i) { offs.push(out.length); out += (i + 1) + " 0 obj\n" + o + "\nendobj\n"; });
+    var xref = out.length;
+    out += "xref\n0 " + (objs.length + 1) + "\n0000000000 65535 f \n";
+    offs.forEach(function (o) { out += ("0000000000" + o).slice(-10) + " 00000 n \n"; });
+    out += "trailer\n<< /Size " + (objs.length + 1) + " /Root 1 0 R >>\nstartxref\n" + xref + "\n%%EOF";
+    var u = new Uint8Array(out.length);
+    for (var i = 0; i < out.length; i++) u[i] = out.charCodeAt(i) & 255;
+    return u;
+  };
+
+  var NAVY = "#1F3A4D", YEL = "#FFF2CC", GREY = "#666666", LINE = "#D0D5DA", RED = "#C00000";
+
+  /* Team report: Hotel and F&B tables only. */
+  function teamPdf(model, stamp) {
+    var pdf = new Pdf(), W = 842, H = 595, M = 34, firstW = 190, SZ = 9;
+    pdf.addPage(W, H);
+    pdf.text("WLBB - Business on the Books", M, M + 16, 18, true, NAVY);
+    pdf.text("Prepared " + stamp, M, M + 30, 8, false, GREY);
+    var y = M + 52;
+    model.sections.forEach(function (sec) {
+      var head = sec[1], rows = sec[2], n = head.length, cw = (W - 2 * M - firstW) / (n - 1);
+      var need = 24 + 20 + rows.length * 20;
+      if (y + need > H - M) { pdf.addPage(W, H); y = M; }
+      pdf.text(sec[0], M, y + 12, 12, true, NAVY); y += 20;
+      pdf.rect(M, y, W - 2 * M, 20, NAVY);
+      head.forEach(function (h, j) {
+        var x = M + (j === 0 ? 0 : firstW + (j - 1) * cw), tw = pdf.width(h, SZ, true);
+        pdf.text(h, j === 0 ? x + 5 : x + (cw - tw) / 2, y + 13.5, SZ, true, "#FFFFFF");
+      });
+      y += 20;
+      rows.forEach(function (r) {
+        var hl = /^Dinner - in-house/.test(r[0]), lines = pdf.wrap(r[0], firstW - 10, SZ, hl), rh = Math.max(20, lines.length * 11 + 9);
+        if (hl) pdf.rect(M, y, W - 2 * M, rh, YEL);
+        lines.forEach(function (ln, k) { pdf.text(ln, M + 5, y + 13 + k * 11, SZ, hl); });
+        for (var j = 1; j < r.length; j++) {
+          var s = String(r[j]), x = M + firstW + (j - 1) * cw, tw = pdf.width(s, SZ, hl);
+          pdf.text(s, x + (cw - tw) / 2, y + 13.5, SZ, hl);
+        }
+        pdf.hline(M, W - M, y + rh, LINE, 0.5);
+        y += rh;
+      });
+      y += 18;
+    });
+    return pdf.bytes();
+  }
+
+  /* Internal list of in-house guests with no dinner booking (contains names). */
+  function unbookedPdf(model, stamp, longDay) {
+    var pdf = new Pdf(), W = 842, H = 595, M = 34, SZ = 9;
+    var cols = [["Room", 58, "l"], ["Guest", 250, "l"], ["Not booked", 66, "c"], ["Stay", 110, "c"], ["Party size", 62, "c"], ["Check", 226, "l"]];
+    pdf.addPage(W, H);
+    pdf.text("In-house guests with no dinner booking", M, M + 16, 18, true, NAVY);
+    pdf.text("INTERNAL - contains guest names. Do not distribute with the team report.", M, M + 32, 9, true, RED);
+    pdf.text("Prepared " + stamp + ". Guests are checked against ResDiary for every night of their stay.", M, M + 44, 8, false, GREY);
+    var y = M + 66, nights = [];
+    model.unbooked.forEach(function (u) { if (nights.indexOf(u.night) < 0) nights.push(u.night); });
+    nights.sort();
+    function header() {
+      pdf.rect(M, y, W - 2 * M, 20, NAVY);
+      var x = M;
+      cols.forEach(function (c) {
+        var tw = pdf.width(c[0], SZ, true);
+        pdf.text(c[0], c[2] === "l" ? x + 5 : x + (c[1] - tw) / 2, y + 13.5, SZ, true, "#FFFFFF"); x += c[1];
+      });
+      y += 20;
+    }
+    if (!nights.length) pdf.text("Every in-house guest on the guest list has a dinner booking.", M, y + 12, 10, false);
+    nights.forEach(function (n) {
+      var items = model.unbooked.filter(function (u) { return u.night === n; }).sort(function (a, b) { return a.rooms < b.rooms ? -1 : a.rooms > b.rooms ? 1 : 0; });
+      var total = items.reduce(function (t, u) { return t + u.unbooked; }, 0);
+      if (y + 70 > H - M) { pdf.addPage(W, H); y = M; }
+      var title = longDay(n) + " - " + total + " guest" + (total === 1 ? "" : "s") + " not booked" +
+        (model.complete[n] ? "" : "  (guest list incomplete for this night - minimum only)");
+      pdf.text(title, M, y + 12, 11, true, NAVY); y += 20;
+      header();
+      items.forEach(function (u) {
+        var chk = u.hint ? "Notes mention dinner - check ResDiary" : "";
+        if (u.covers && u.covers < u.occupants) chk = (chk ? chk + "; " : "") + "only " + u.covers + " of " + u.occupants + " covered";
+        if (u.planNote) chk = (chk ? chk + "; " : "") + u.planNote;
+        var vals = [u.rooms.replace(/ROOM_/g, "Room "), u.guests, String(u.unbooked), u.stay, String(u.occupants), chk];
+        var wr = vals.map(function (v, k) { return pdf.wrap(v, cols[k][1] - 10, SZ, false); });
+        var lines = Math.max.apply(null, wr.map(function (a) { return a.length; })), rh = Math.max(20, lines * 11 + 9);
+        if (y + rh > H - M) { pdf.addPage(W, H); y = M; header(); }
+        var x = M;
+        cols.forEach(function (c, k) {
+          wr[k].forEach(function (ln, li) {
+            var tw = pdf.width(ln, SZ, false);
+            pdf.text(ln, c[2] === "l" ? x + 5 : x + (c[1] - tw) / 2, y + 13 + li * 11, SZ, false);
+          });
+          x += c[1];
+        });
+        pdf.hline(M, W - M, y + rh, LINE, 0.5);
+        y += rh;
+      });
+      y += 16;
+    });
+    return pdf.bytes();
+  }
+
+  /* ================= XLSX ================= */
+  var CRC = (function () { var t = [], c, n, k; for (n = 0; n < 256; n++) { c = n; for (k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  function crc32(u) { var c = 0xFFFFFFFF; for (var i = 0; i < u.length; i++) c = CRC[(c ^ u[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+  function zip(files) { // stored (no compression) zip
+    var enc = new TextEncoder(), parts = [], central = [], off = 0;
+    function u16(v) { return [v & 255, (v >> 8) & 255]; }
+    function u32(v) { return [v & 255, (v >> 8) & 255, (v >> 16) & 255, (v >>> 24) & 255]; }
+    files.forEach(function (f) {
+      var name = enc.encode(f[0]), data = enc.encode(f[1]), crc = crc32(data);
+      var lh = [0x50, 0x4b, 3, 4].concat(u16(20), u16(0x0800), u16(0), u16(0), u16(0x21), u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0));
+      parts.push(Uint8Array.from(lh), name, data);
+      central.push([Uint8Array.from([0x50, 0x4b, 1, 2].concat(u16(20), u16(20), u16(0x0800), u16(0), u16(0), u16(0x21), u32(crc), u32(data.length), u32(data.length), u16(name.length), u16(0), u16(0), u16(0), u16(0), u32(0), u32(off))), name]);
+      off += lh.length + name.length + data.length;
+    });
+    var cstart = off, csize = 0;
+    central.forEach(function (c) { parts.push(c[0], c[1]); csize += c[0].length + c[1].length; });
+    parts.push(Uint8Array.from([0x50, 0x4b, 5, 6].concat(u16(0), u16(0), u16(files.length), u16(files.length), u32(csize), u32(cstart), u16(0))));
+    var total = parts.reduce(function (t, p) { return t + p.length; }, 0), out = new Uint8Array(total), pos = 0;
+    parts.forEach(function (p) { out.set(p, pos); pos += p.length; });
+    return out;
+  }
+  function xe(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, ""); }
+  function colName(i) { var s = ""; i++; while (i > 0) { var m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; }
+
+  var STYLES = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+    '<fonts count="6"><font><sz val="11"/><name val="Calibri"/></font>' +
+    '<font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>' +
+    '<font><b/><sz val="12"/><color rgb="FF1F3A4D"/><name val="Calibri"/></font>' +
+    '<font><i/><sz val="11"/><color rgb="FF666666"/><name val="Calibri"/></font>' +
+    '<font><b/><sz val="11"/><name val="Calibri"/></font>' +
+    '<font><b/><sz val="16"/><color rgb="FF1F3A4D"/><name val="Calibri"/></font></fonts>' +
+    '<fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>' +
+    '<fill><patternFill patternType="solid"><fgColor rgb="FF1F3A4D"/></patternFill></fill>' +
+    '<fill><patternFill patternType="solid"><fgColor rgb="FFFFF2CC"/></patternFill></fill></fills>' +
+    '<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>' +
+    '<border><left/><right/><top/><bottom style="thin"><color rgb="FFD0D5DA"/></bottom><diagonal/></border></borders>' +
+    '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+    '<cellXfs count="11">' +
+    '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
+    '<xf numFmtId="0" fontId="5" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
+    '<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
+    '<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>' +
+    '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="left" vertical="center" wrapText="1"/></xf>' +
+    '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>' +
+    '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center" wrapText="1"/></xf>' +
+    '<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>' +
+    '<xf numFmtId="0" fontId="4" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="left" vertical="center" wrapText="1"/></xf>' +
+    '<xf numFmtId="0" fontId="4" fillId="3" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>' +
+    '<xf numFmtId="0" fontId="4" fillId="0" borderId="1" xfId="0" applyFont="1" applyBorder="1" applyAlignment="1"><alignment horizontal="center" vertical="center" wrapText="1"/></xf>' +
+    '</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+
+  function sheetXml(cells, ncols) {
+    var rowsXml = cells.map(function (r, ri) {
+      var cs = r.map(function (c, ci) {
+        if (c === null || c === undefined || c[0] === "") return "";
+        var ref = colName(ci) + (ri + 1), v = c[0], s = c[1];
+        return typeof v === "number" ? '<c r="' + ref + '" s="' + s + '"><v>' + v + "</v></c>"
+          : '<c r="' + ref + '" s="' + s + '" t="inlineStr"><is><t xml:space="preserve">' + xe(v) + "</t></is></c>";
+      }).join("");
+      return '<row r="' + (ri + 1) + '">' + cs + "</row>";
+    }).join("");
+    var cols = '<cols><col min="1" max="1" width="52" customWidth="1"/><col min="2" max="' + ncols + '" width="16" customWidth="1"/></cols>';
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">' +
+      '<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView workbookViewId="0"/></sheetViews>' + cols +
+      "<sheetData>" + rowsXml + '</sheetData><pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/>' +
+      '<pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>';
+  }
+  function sheetCells(heading, stamp, sections) {
+    var cells = [[[heading, 1]], [["Prepared " + stamp, 2]], []];
+    sections.forEach(function (sec) {
+      cells.push([[sec[0], 3]]);
+      cells.push(sec[1].map(function (h, j) { return [h === "" ? " " : h, j === 0 ? 4 : 5]; }));
+      sec[2].forEach(function (r) {
+        var hl = /^(Dinner - in-house|In-house guests NOT)/.test(r[0]);
+        cells.push(r.map(function (v, j) {
+          if (v === "" || v === null) return hl ? [" ", 8] : null;
+          var st = j === 0 ? (hl ? 8 : 6) : (hl ? 9 : (v === "NO" ? 10 : 7));
+          return [v, st];
+        }));
+      });
+      cells.push([], []);
+    });
+    return cells;
+  }
+  function xlsx(model, stamp) {
+    var s1 = sheetCells("WLBB - Business on the Books", stamp, model.sections),
+        s2 = sheetCells("Detail - dinner check", stamp, model.detail), n = model.sections[0][1].length;
+    return zip([
+      ["[Content_Types].xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'],
+      ["_rels/.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+      ["xl/workbook.xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Business on the Books" sheetId="1" r:id="rId1"/><sheet name="Detail (internal)" sheetId="2" r:id="rId2"/></sheets></workbook>'],
+      ["xl/_rels/workbook.xml.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/><Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'],
+      ["xl/styles.xml", STYLES],
+      ["xl/worksheets/sheet1.xml", sheetXml(s1, n)],
+      ["xl/worksheets/sheet2.xml", sheetXml(s2, n)]
+    ]);
+  }
+
+  var API = { teamPdf: teamPdf, unbookedPdf: unbookedPdf, xlsx: xlsx };
+  if (typeof module !== "undefined" && module.exports) module.exports = API; else root.BOTBW = API;
+})(typeof self !== "undefined" ? self : this);
+
+</script>
+<script>
+(function () {
+  "use strict";
+  var $ = function (id) { return document.getElementById(id); };
+  var sheets = {}, names = {}, out = null;
+  var LABEL = { guests: "Guest List", daily: "Daily Products", resdiary: "ResDiary", events: "Event stats" };
+
+  function setMsg(el, text, cls) { el.textContent = text || ""; el.className = "msg" + (cls ? " " + cls : ""); }
+  function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+
+  function refreshSlots() {
+    ["guests", "daily", "resdiary", "events"].forEach(function (k) {
+      var li = document.querySelector('#slots li[data-k="' + k + '"]');
+      li.classList.toggle("done", !!sheets[k]);
+      li.querySelector(".v").textContent = sheets[k] ? names[k] : "Not added";
+    });
+    var all = ["guests", "daily", "resdiary", "events"].every(function (k) { return sheets[k]; });
+    $("go").disabled = !all;
+    setupRange(all);
+    $("reset").hidden = !Object.keys(sheets).length;
+  }
+
+  var autoRange = null;
+  function setupRange(all) {
+    var box = $("range");
+    if (!all) { box.hidden = true; autoRange = null; return; }
+    try {
+      var m = BOTB.build({ guests: sheets.guests, daily: sheets.daily, resdiary: sheets.resdiary, events: sheets.events });
+      var sig = m.auto.first + "|" + m.auto.last;
+      if (!autoRange || autoRange.sig !== sig) {
+        autoRange = { first: m.auto.first, last: m.auto.last, sig: sig };
+        $("d-from").value = m.auto.first; $("d-to").value = m.auto.last;
+      }
+      $("d-hint").textContent = "The files cover " + BOTB.fmtDayLong(m.auto.first) + " to " + BOTB.fmtDayLong(m.auto.last) + ". Pick any dates to show (up to " + MAXDAYS + " days).";
+      box.hidden = false;
+    } catch (e) { box.hidden = true; }
+  }
+  var MAXDAYS = 31;
+
+  function readRows(file) {
+    return file.arrayBuffer().then(function (buf) {
+      if (/\.csv$/i.test(file.name) || /^text\//.test(file.type)) {
+        return BOTB.parseCsv(new TextDecoder("utf-8").decode(buf));
+      }
+      if (typeof XLSX === "undefined") throw new Error("The spreadsheet reader did not load. Check your connection and reload the page.");
+      var wb = XLSX.read(new Uint8Array(buf), { type: "array" });
+      return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: "" });
+    });
+  }
+
+  function addFiles(list) {
+    var files = Array.prototype.slice.call(list), bad = [], pending = files.length;
+    if (!pending) return;
+    setMsg($("msg"), "Reading " + pending + " file" + (pending === 1 ? "" : "s") + "...");
+    files.reduce(function (p, f) {
+      return p.then(function () {
+        return readRows(f).then(function (rows) {
+          var kind = BOTB.detect(rows);
+          if (kind) { sheets[kind] = rows; names[kind] = f.name; } else bad.push(f.name);
+        }).catch(function (e) { bad.push(f.name + " (" + e.message + ")"); });
+      });
+    }, Promise.resolve()).then(function () {
+      refreshSlots();
+      if (bad.length) setMsg($("msg"), "Could not recognise: " + bad.join(", ") + ". Check it is one of the four reports.", "bad");
+      else if (!$("go").disabled) setMsg($("msg"), "All four reports added.", "ok");
+      else setMsg($("msg"), "");
+    });
+  }
+
+  function tableHtml(head, rows) {
+    var h = "<table><thead><tr>" + head.map(function (c) { return "<th scope=\"col\">" + esc(c) + "</th>"; }).join("") + "</tr></thead><tbody>";
+    rows.forEach(function (r) {
+      var hl = /^Dinner - in-house/.test(r[0]);
+      h += "<tr" + (hl ? ' class="hl"' : "") + ">" + r.map(function (c) { return "<td>" + esc(c) + "</td>"; }).join("") + "</tr>";
+    });
+    return h + "</tbody></table>";
+  }
+
+  function stampNow() {
+    var d = new Date(), p = function (n) { return (n < 10 ? "0" : "") + n; };
+    return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getDay()] + " " + p(d.getDate()) + " " +
+      ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][d.getMonth()] + " " + d.getFullYear() + ", " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+  function dateTag() { var d = new Date(), p = function (n) { return (n < 10 ? "0" : "") + n; }; return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()); }
+
+  function generate() {
+    setMsg($("msg"), "");
+    try {
+      var from = $("d-from").value, to = $("d-to").value;
+      if (from && to && from > to) { setMsg($("msg"), "The From date must be on or before the To date.", "bad"); return; }
+      if (from && to && (Date.parse(to) - Date.parse(from)) / 86400000 + 1 > MAXDAYS) { setMsg($("msg"), "Please pick " + MAXDAYS + " days or fewer so the report stays readable.", "bad"); return; }
+      var model = BOTB.build({ guests: sheets.guests, daily: sheets.daily, resdiary: sheets.resdiary, events: sheets.events, from: from || null, to: to || null }), stamp = stampNow();
+      out = {
+        pdf: BOTBW.teamPdf(model, stamp), xlsx: BOTBW.xlsx(model, stamp),
+        internal: BOTBW.unbookedPdf(model, stamp, BOTB.fmtDayLong), tag: dateTag()
+      };
+      $("notes").innerHTML = model.notes.map(function (n) { return '<p class="note">' + esc(n) + "</p>"; }).join("");
+      $("tables").innerHTML = model.sections.map(function (s) {
+        return '<h3 class="sec">' + esc(s[0]) + '</h3><div class="tablewrap">' + tableHtml(s[1], s[2]) + "</div>";
+      }).join("");
+      $("results").hidden = false;
+      $("results").scrollIntoView({ behavior: "smooth", block: "start" });
+      updateSaveState();
+    } catch (e) {
+      setMsg($("msg"), "Something in the reports was not as expected: " + e.message, "bad");
+    }
+  }
+
+  // Phones and tablets use the share sheet; computers always do a normal download.
+  function mimeOf(n) { return /\.pdf$/i.test(n) ? "application/pdf" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"; }
+  function updateSaveState() { setMsg($("savemsg"), ""); }
+  function done(name) { setMsg($("savemsg"), "Saved " + name + ".", "ok"); }
+  function save(name, bytes) {
+    setMsg($("savemsg"), "");
+    var file = new File([bytes], name, { type: mimeOf(name) });
+    function plain() {
+      var url = URL.createObjectURL(file), a = document.createElement("a");
+      a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 60000); done(name);
+    }
+    var phone = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform));
+    if (phone && navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: name }).then(function () { done(name); }, function (e) {
+        if (e && e.name === "AbortError") setMsg($("savemsg"), "Not saved."); else plain();
+      });
+    } else plain();
+  }
+
+  $("pick").addEventListener("change", function (e) { addFiles(e.target.files); e.target.value = ""; });
+  var drop = $("drop");
+  ["dragover", "dragenter"].forEach(function (n) { drop.addEventListener(n, function (e) { e.preventDefault(); drop.classList.add("over"); }); });
+  ["dragleave", "drop"].forEach(function (n) { drop.addEventListener(n, function (e) { e.preventDefault(); drop.classList.remove("over"); }); });
+  drop.addEventListener("drop", function (e) { addFiles(e.dataTransfer.files); });
+  $("go").addEventListener("click", generate);
+  $("d-reset").addEventListener("click", function () { if (autoRange) { $("d-from").value = autoRange.first; $("d-to").value = autoRange.last; } });
+  $("reset").addEventListener("click", function () {
+    sheets = {}; names = {}; out = null; autoRange = null; $("results").hidden = true; setMsg($("msg"), ""); refreshSlots();
+  });
+  $("s-pdf").addEventListener("click", function () { save("Business_On_The_Books_" + out.tag + ".pdf", out.pdf); });
+  $("s-xlsx").addEventListener("click", function () { save("Business_On_The_Books_" + out.tag + ".xlsx", out.xlsx); });
+  $("s-int").addEventListener("click", function () { save("Guests_Without_Dinner_INTERNAL_" + out.tag + ".pdf", out.internal); });
+
+  refreshSlots();
+})();
+</script>
+
+</body></html>
