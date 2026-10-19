@@ -512,7 +512,8 @@ tr.hl td{background:var(--hl);color:var(--hl-ink);font-weight:700}
       soldBy[name] = sr; availBy[name] = ar;
     });
 
-    var bf = days.map(function (d) { return daily[d] ? daily[d].ad + daily[d].ch + daily[d].inf : null; }); // always equals Guests In House
+    // breakfast is served the morning after a night in house, so each day's breakfast = previous night's Guests In House
+    var bf = days.map(function (d) { var p = daily[addDays(d, -1)]; return p ? p.ad + p.ch + p.inf : null; });
     var wf = days.map(function (d) { return dget(d, "wine"); });
     function orDash(a) { return a.map(function (v) { return v === null ? "-" : v; }); }
     var fb = [
